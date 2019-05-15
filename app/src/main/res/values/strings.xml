@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">MovieCatalogue(API)</string>
+
+    <string name="title_movies">Movies</string>
+    <string name="title_tv">TV Shows</string>
+
+    <string name="title_movie">Doraemon</string>
+    <string name="title_date">March 18, 2019</string>
+    <string name="action_english">English</string>
+    <string name="action_indonesia">Indonesia</string>
+    <string name="message_no_overview">Tidak ada overview dalam Bahasa Indonesia</string>
+</resources>
