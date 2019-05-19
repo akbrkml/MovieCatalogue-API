@@ -12,4 +12,10 @@
         android:title="@string/action_indonesia"
         android:icon="@drawable/ic_settings"
         app:showAsAction="never"/>
+
+    <item
+        android:id="@+id/action_fav"
+        android:title="@string/title_favorite"
+        android:icon="@drawable/ic_settings"
+        app:showAsAction="never"/>
 </menu>

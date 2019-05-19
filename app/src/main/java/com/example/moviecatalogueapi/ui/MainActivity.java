@@ -1,5 +1,6 @@
 package com.example.moviecatalogueapi.ui;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -11,6 +12,7 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 
 import com.example.moviecatalogueapi.R;
+import com.example.moviecatalogueapi.ui.fav.FavoriteActivity;
 import com.example.moviecatalogueapi.ui.movie.MovieFragment;
 import com.example.moviecatalogueapi.ui.tv.TVFragment;
 import com.example.moviecatalogueapi.utils.Constant;
@@ -108,9 +110,11 @@ public class MainActivity extends AppCompatActivity   {
         if (item.getItemId() == R.id.action_change_en) {
             SessionManager.putString(this, Constant.LANGUAGE, Constant.EN);
             listener.onClickLanguageSetting(Constant.EN);
-        } else {
+        } else if (item.getItemId() == R.id.action_change_id){
             SessionManager.putString(this, Constant.LANGUAGE, Constant.ID);
             listener.onClickLanguageSetting(Constant.ID);
+        } else {
+            startActivity(new Intent(this, FavoriteActivity.class));
         }
         return super.onOptionsItemSelected(item);
     }

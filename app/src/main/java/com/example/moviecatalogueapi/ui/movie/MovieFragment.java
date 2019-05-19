@@ -18,7 +18,6 @@ import com.example.moviecatalogueapi.BuildConfig;
 import com.example.moviecatalogueapi.model.Movie;
 import com.example.moviecatalogueapi.ui.OnChangeLanguageListener;
 import com.example.moviecatalogueapi.ui.movie.view.MovieClickListener;
-import com.example.moviecatalogueapi.ui.DetailActivity;
 import com.example.moviecatalogueapi.ui.movie.adapter.MovieAdapter;
 import com.example.moviecatalogueapi.ui.movie.presenter.MoviePresenter;
 import com.example.moviecatalogueapi.ui.movie.view.MovieView;
@@ -101,9 +100,8 @@ public class MovieFragment extends Fragment implements MovieView, MovieClickList
 
     @Override
     public void onItemClick(Movie movie) {
-        Intent intent = new Intent(getActivity(), DetailActivity.class);
+        Intent intent = new Intent(getActivity(), DetailMovieActivity.class);
         intent.putExtra(Constant.EXTRA_CATALOG, movie);
-        intent.putExtra(Constant.EXTRA_FROM, Constant.MOVIE);
         startActivity(intent);
     }
 

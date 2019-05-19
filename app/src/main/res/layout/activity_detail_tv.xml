@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.movie.DetailMovieActivity"
+    tools:context=".ui.tv.DetailTvActivity"
     android:padding="16dp">
 
     <ImageView

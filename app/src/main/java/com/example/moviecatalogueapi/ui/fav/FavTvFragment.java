@@ -1,4 +1,4 @@
-package com.example.moviecatalogueapi.ui.tv;
+package com.example.moviecatalogueapi.ui.fav;
 
 
 import android.content.Intent;
@@ -6,7 +6,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ProgressBar;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -14,40 +14,41 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.moviecatalogueapi.BuildConfig;
-import com.example.moviecatalogueapi.model.TvShow;
 import com.example.moviecatalogueapi.R;
-import com.example.moviecatalogueapi.ui.OnChangeLanguageListener;
+import com.example.moviecatalogueapi.db.AppDatabase;
+import com.example.moviecatalogueapi.model.TvShow;
+import com.example.moviecatalogueapi.ui.tv.DetailTvActivity;
 import com.example.moviecatalogueapi.ui.tv.adapter.TvAdapter;
-import com.example.moviecatalogueapi.ui.tv.presenter.TvPresenter;
 import com.example.moviecatalogueapi.ui.tv.view.TvClickListener;
-import com.example.moviecatalogueapi.ui.tv.view.TvView;
 import com.example.moviecatalogueapi.utils.Constant;
-import com.example.moviecatalogueapi.utils.SessionManager;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.schedulers.Schedulers;
 
 /**
  * A simple {@link Fragment} subclass.
  */
-public class TVFragment extends Fragment implements TvView, TvClickListener, OnChangeLanguageListener {
+public class FavTvFragment extends Fragment implements TvClickListener {
 
     private static final String TV_STATE_KEY = "TV_STATE";
 
     @BindView(R.id.rvTv)
     RecyclerView rvTv;
-    @BindView(R.id.progressBar)
-    ProgressBar progressBar;
+    @BindView(R.id.tvNoData)
+    TextView tvNoData;
 
     private TvAdapter adapter;
-    private TvPresenter presenter;
+    private final CompositeDisposable disposable = new CompositeDisposable();
+    private AppDatabase database;
+
     private final ArrayList<TvShow> tvShows = new ArrayList<>();
 
-    public TVFragment() {
+    public FavTvFragment() {
         // Required empty public constructor
     }
 
@@ -56,7 +57,7 @@ public class TVFragment extends Fragment implements TvView, TvClickListener, OnC
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View view = inflater.inflate(R.layout.fragment_tv, container, false);
+        View view = inflater.inflate(R.layout.fragment_fav_tv, container, false);
         ButterKnife.bind(this, view);
         return view;
     }
@@ -64,11 +65,12 @@ public class TVFragment extends Fragment implements TvView, TvClickListener, OnC
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        presenter = new TvPresenter(this);
+
+        database = AppDatabase.getAppDatabase(getActivity());
         showRecyclerView();
 
         if (savedInstanceState == null) {
-            getTvShows();
+            showData();
         } else {
             ArrayList<TvShow> stateList = savedInstanceState.getParcelableArrayList(TV_STATE_KEY);
             if (stateList != null) {
@@ -78,12 +80,6 @@ public class TVFragment extends Fragment implements TvView, TvClickListener, OnC
         }
     }
 
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setRetainInstance(true);
-    }
-
     private void showRecyclerView() {
         adapter = new TvAdapter(getActivity(), this);
         rvTv.setLayoutManager(new LinearLayoutManager(getActivity()));
@@ -91,10 +87,24 @@ public class TVFragment extends Fragment implements TvView, TvClickListener, OnC
         rvTv.setAdapter(adapter);
     }
 
-    private void getTvShows() {
-        if (SessionManager.getString(getActivity(), Constant.LANGUAGE).equals(Constant.EN))
-            presenter.getTvShows(BuildConfig.API_KEY, Constant.EN);
-        else presenter.getTvShows(BuildConfig.API_KEY, Constant.ID);
+    private void showData() {
+        disposable.add(
+                database.tvDao().getAllTvShows()
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(tvs -> {
+                                    if (tvs.size() > 0) {
+                                        this.tvShows.addAll(tvs);
+                                        adapter.setTvShows(tvs);
+                                        rvTv.setVisibility(View.VISIBLE);
+                                        tvNoData.setVisibility(View.INVISIBLE);
+                                    } else {
+                                        rvTv.setVisibility(View.INVISIBLE);
+                                        tvNoData.setVisibility(View.VISIBLE);
+                                    }
+                                }
+                        )
+        );
     }
 
     @Override
@@ -105,26 +115,14 @@ public class TVFragment extends Fragment implements TvView, TvClickListener, OnC
     }
 
     @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setRetainInstance(true);
+    }
+
+    @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-    }
-
-    @Override
-    public void showTv(List<TvShow> tvShows) {
-        this.tvShows.addAll(tvShows);
-        adapter.setTvShows(tvShows);
-    }
-
-    @Override
-    public void showLoading() {
-        progressBar.setEnabled(true);
-        progressBar.setVisibility(View.VISIBLE);
-    }
-
-    @Override
-    public void hideLoading() {
-        progressBar.setEnabled(false);
-        progressBar.setVisibility(View.INVISIBLE);
     }
 
     @Override
@@ -132,10 +130,5 @@ public class TVFragment extends Fragment implements TvView, TvClickListener, OnC
         Intent intent = new Intent(getActivity(), DetailTvActivity.class);
         intent.putExtra(Constant.EXTRA_CATALOG, tvShow);
         startActivity(intent);
-    }
-
-    @Override
-    public void onClickLanguageSetting(String language) {
-        presenter.getTvShows(BuildConfig.API_KEY, language);
     }
 }

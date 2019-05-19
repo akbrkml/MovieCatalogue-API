@@ -10,4 +10,5 @@ public class Constant {
     public static final String EXTRA_CATALOG = "extra_catalog";
     public static final String EXTRA_FROM = "from";
     public static final String LANGUAGE = "language";
+    public static final String DATABASE_NAME = "movie.db";
 }
