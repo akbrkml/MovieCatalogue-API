@@ -11,6 +11,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.example.moviecatalogueapi.GlideApp;
 import com.example.moviecatalogueapi.R;
 import com.example.moviecatalogueapi.model.TvShow;
 import com.example.moviecatalogueapi.ui.tv.presenter.DetailTvPresenter;
@@ -62,7 +63,7 @@ public class DetailTvActivity extends AppCompatActivity implements DetailTvView 
                 tvDescription.setText(catalog.getOverview());
             } else
                 tvDescription.setText(getApplicationContext().getString(R.string.message_no_overview));
-            Glide.with(this).load(Constant.POSTER_URL + catalog.getPosterPath()).into(ivPoster);
+            GlideApp.with(this).load(Constant.POSTER_URL + catalog.getPosterPath()).into(ivPoster);
             getSupportActionBar().setTitle(catalog.getName());
         }
 

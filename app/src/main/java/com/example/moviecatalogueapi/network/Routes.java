@@ -10,15 +10,29 @@ import retrofit2.http.Query;
 
 public interface Routes {
 
-    @GET("movie")
+    @GET("discover/movie")
     Observable<Response<MovieResponse>> getMovies(
             @Query("api_key") String API_KEY,
             @Query("language") String language
     );
 
-    @GET("tv")
+    @GET("discover/tv")
     Observable<Response<TvShowResponse>> getTvShows(
             @Query("api_key") String API_KEY,
             @Query("language") String language
+    );
+
+    @GET("search/movie")
+    Observable<Response<MovieResponse>> searchMovies(
+            @Query("api_key") String API_KEY,
+            @Query("language") String language,
+            @Query("query") String query
+    );
+
+    @GET("search/tv")
+    Observable<Response<TvShowResponse>> searchTvShows(
+            @Query("api_key") String API_KEY,
+            @Query("language") String language,
+            @Query("query") String query
     );
 }

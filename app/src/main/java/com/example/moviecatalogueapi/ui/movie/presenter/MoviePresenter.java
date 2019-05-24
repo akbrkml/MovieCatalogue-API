@@ -58,4 +58,38 @@ public class MoviePresenter implements MoviePresenterIntr {
                     }
                 });
     }
+
+    @Override
+    public void searchMovies(String API_KEY, String language, String query) {
+        movieView.showLoading();
+        routes.searchMovies(API_KEY, language, query)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Observer<Response<MovieResponse>>() {
+                    @Override
+                    public void onSubscribe(Disposable d) {
+
+                    }
+
+                    @Override
+                    public void onNext(Response<MovieResponse> responseBodyResponse) {
+                        MovieResponse response = responseBodyResponse.body();
+                        if (response != null) {
+                            movieView.showList(response.getResults());
+                            Log.i(TAG, response.getResults().toString());
+                        }
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        Log.e(TAG, "onError", e);
+                    }
+
+                    @Override
+                    public void onComplete() {
+                        movieView.hideLoading();
+                        Log.i(TAG, "onComplete");
+                    }
+                });
+    }
 }

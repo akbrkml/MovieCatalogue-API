@@ -11,6 +11,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
 import com.bumptech.glide.Glide;
+import com.example.moviecatalogueapi.GlideApp;
 import com.example.moviecatalogueapi.R;
 import com.example.moviecatalogueapi.model.Movie;
 import com.example.moviecatalogueapi.ui.movie.presenter.DetailMoviePresenter;
@@ -61,7 +62,7 @@ public class DetailMovieActivity extends AppCompatActivity implements DetailMovi
                 tvDescription.setText(catalog.getOverview());
             } else
                 tvDescription.setText(getApplicationContext().getString(R.string.message_no_overview));
-            Glide.with(this).load(Constant.POSTER_URL + catalog.getPosterPath()).into(ivPoster);
+            GlideApp.with(this).load(Constant.POSTER_URL + catalog.getPosterPath()).into(ivPoster);
             getSupportActionBar().setTitle(catalog.getTitle());
         }
 

@@ -59,4 +59,38 @@ public class TvPresenter implements TvPresenterIntr {
                 });
     }
 
+    @Override
+    public void searchTvShows(String API_KEY, String language, String query) {
+        view.showLoading();
+        routes.searchTvShows(API_KEY, language, query)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Observer<Response<TvShowResponse>>() {
+                    @Override
+                    public void onSubscribe(Disposable d) {
+
+                    }
+
+                    @Override
+                    public void onNext(Response<TvShowResponse> responseBodyResponse) {
+                        TvShowResponse response = responseBodyResponse.body();
+                        if (response != null) {
+                            view.showTv(response.getResults());
+                            Log.i(TAG, response.getResults().toString());
+                        }
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        Log.e(TAG, "onError", e);
+                    }
+
+                    @Override
+                    public void onComplete() {
+                        view.hideLoading();
+                        Log.i(TAG, "onComplete");
+                    }
+                });
+    }
+
 }

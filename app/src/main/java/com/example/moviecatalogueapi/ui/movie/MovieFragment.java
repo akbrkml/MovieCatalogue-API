@@ -16,7 +16,9 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.moviecatalogueapi.BuildConfig;
 import com.example.moviecatalogueapi.model.Movie;
+import com.example.moviecatalogueapi.ui.MainActivity;
 import com.example.moviecatalogueapi.ui.OnChangeLanguageListener;
+import com.example.moviecatalogueapi.ui.OnQueryChangeListener;
 import com.example.moviecatalogueapi.ui.movie.view.MovieClickListener;
 import com.example.moviecatalogueapi.ui.movie.adapter.MovieAdapter;
 import com.example.moviecatalogueapi.ui.movie.presenter.MoviePresenter;
@@ -34,7 +36,7 @@ import butterknife.ButterKnife;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class MovieFragment extends Fragment implements MovieView, MovieClickListener, OnChangeLanguageListener {
+public class MovieFragment extends Fragment implements MovieView, MovieClickListener, OnChangeLanguageListener, OnQueryChangeListener {
 
 
     private static final String MOVIE_STATE_KEY = "MOVIE_STATE";
@@ -67,6 +69,7 @@ public class MovieFragment extends Fragment implements MovieView, MovieClickList
         super.onViewCreated(view, savedInstanceState);
         presenter = new MoviePresenter(this);
         showRecyclerView();
+        ((MainActivity) getActivity()).setQueryChangeListener(this);
 
         if (savedInstanceState == null) {
             getMovies();
@@ -121,8 +124,9 @@ public class MovieFragment extends Fragment implements MovieView, MovieClickList
 
     @Override
     public void showList(List<Movie> movies) {
+        this.movies.clear();
         this.movies.addAll(movies);
-        adapter.setMovies(movies);
+        adapter.setMovies(this.movies);
     }
 
     @Override
@@ -140,5 +144,12 @@ public class MovieFragment extends Fragment implements MovieView, MovieClickList
     @Override
     public void onClickLanguageSetting(String language) {
         presenter.getMovies(BuildConfig.API_KEY, language);
+    }
+
+    @Override
+    public void onQueryChange(String query) {
+        if (SessionManager.getString(getActivity(), Constant.LANGUAGE).equals(Constant.EN))
+            presenter.searchMovies(BuildConfig.API_KEY, Constant.EN, query);
+        else presenter.searchMovies(BuildConfig.API_KEY, Constant.ID, query);
     }
 }

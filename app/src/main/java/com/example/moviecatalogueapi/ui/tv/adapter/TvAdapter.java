@@ -11,6 +11,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.example.moviecatalogueapi.GlideApp;
 import com.example.moviecatalogueapi.R;
 import com.example.moviecatalogueapi.model.TvShow;
 import com.example.moviecatalogueapi.ui.tv.view.TvClickListener;
@@ -72,7 +73,7 @@ public class TvAdapter extends RecyclerView.Adapter<TvAdapter.ViewHolder> {
         void bind(final TvShow tvShow) {
             tvTitle.setText(tvShow.getName());
             tvDate.setText(tvShow.getFirstAirDate());
-            Glide.with(context).load("https://image.tmdb.org/t/p/w500/"+tvShow.getPosterPath()).into(ivPoster);
+            GlideApp.with(context).load("https://image.tmdb.org/t/p/w500/"+tvShow.getPosterPath()).into(ivPoster);
             itemView.setOnClickListener(v -> listener.onItemClick(tvShow));
         }
     }

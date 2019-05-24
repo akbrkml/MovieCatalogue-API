@@ -1,5 +1,7 @@
 package com.example.moviecatalogueapi.ui;
 
+import android.app.SearchManager;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
@@ -8,6 +10,7 @@ import android.widget.FrameLayout;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SearchView;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 
@@ -27,6 +30,7 @@ public class MainActivity extends AppCompatActivity   {
     private static final String FRAGMENT_KEY = "fragment_state";
 
     private OnChangeLanguageListener listener;
+    private OnQueryChangeListener queryChangeListener;
     private Fragment fragment = new MovieFragment();
 
     @Override
@@ -39,6 +43,7 @@ public class MainActivity extends AppCompatActivity   {
 
         if (savedInstanceState == null) {
             setListener((OnChangeLanguageListener) fragment);
+//            setQueryChangeListener((OnQueryChangeListener) fragment);
             loadFragment(fragment);
         } else {
             fragment = getSupportFragmentManager().getFragment(savedInstanceState, FRAGMENT_KEY);
@@ -65,12 +70,14 @@ public class MainActivity extends AppCompatActivity   {
                     toolbar.setTitle(getString(R.string.title_movies));
                     fragment = new MovieFragment();
                     setListener((OnChangeLanguageListener) fragment);
+//                    setQueryChangeListener((OnQueryChangeListener) fragment);
                     loadFragment(fragment);
                     break;
                 case R.id.navigation_tv:
                     toolbar.setTitle(getString(R.string.title_tv));
                     fragment = new TVFragment();
                     setListener((OnChangeLanguageListener) fragment);
+//                    setQueryChangeListener((OnQueryChangeListener) fragment);
                     loadFragment(fragment);
                     break;
             }
@@ -102,6 +109,27 @@ public class MainActivity extends AppCompatActivity   {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main_menu, menu);
+
+        MenuItem searchItem = menu.findItem(R.id.action_search);
+        SearchManager searchManager = (SearchManager) MainActivity.this.getSystemService(Context.SEARCH_SERVICE);
+
+        SearchView searchView;
+        if (searchItem != null) {
+            searchView = (SearchView) searchItem.getActionView();
+            searchView.setSearchableInfo(searchManager.getSearchableInfo(MainActivity.this.getComponentName()));
+            searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+                @Override
+                public boolean onQueryTextSubmit(String query) {
+                    return false;
+                }
+
+                @Override
+                public boolean onQueryTextChange(String newText) {
+                    if (newText.length() > 3) queryChangeListener.onQueryChange(newText);
+                    return true;
+                }
+            });
+        }
         return true;
     }
 
@@ -121,5 +149,9 @@ public class MainActivity extends AppCompatActivity   {
 
     private void setListener(OnChangeLanguageListener listener) {
         this.listener = listener;
+    }
+
+    public void setQueryChangeListener(OnQueryChangeListener queryChangeListener) {
+        this.queryChangeListener = queryChangeListener;
     }
 }

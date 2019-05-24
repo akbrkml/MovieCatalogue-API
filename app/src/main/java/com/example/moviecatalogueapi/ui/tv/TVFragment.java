@@ -17,7 +17,9 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.moviecatalogueapi.BuildConfig;
 import com.example.moviecatalogueapi.model.TvShow;
 import com.example.moviecatalogueapi.R;
+import com.example.moviecatalogueapi.ui.MainActivity;
 import com.example.moviecatalogueapi.ui.OnChangeLanguageListener;
+import com.example.moviecatalogueapi.ui.OnQueryChangeListener;
 import com.example.moviecatalogueapi.ui.tv.adapter.TvAdapter;
 import com.example.moviecatalogueapi.ui.tv.presenter.TvPresenter;
 import com.example.moviecatalogueapi.ui.tv.view.TvClickListener;
@@ -34,7 +36,7 @@ import butterknife.ButterKnife;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class TVFragment extends Fragment implements TvView, TvClickListener, OnChangeLanguageListener {
+public class TVFragment extends Fragment implements TvView, TvClickListener, OnChangeLanguageListener, OnQueryChangeListener {
 
     private static final String TV_STATE_KEY = "TV_STATE";
 
@@ -66,6 +68,7 @@ public class TVFragment extends Fragment implements TvView, TvClickListener, OnC
         super.onViewCreated(view, savedInstanceState);
         presenter = new TvPresenter(this);
         showRecyclerView();
+        ((MainActivity) getActivity()).setQueryChangeListener(this);
 
         if (savedInstanceState == null) {
             getTvShows();
@@ -111,8 +114,9 @@ public class TVFragment extends Fragment implements TvView, TvClickListener, OnC
 
     @Override
     public void showTv(List<TvShow> tvShows) {
+        this.tvShows.clear();
         this.tvShows.addAll(tvShows);
-        adapter.setTvShows(tvShows);
+        adapter.setTvShows(this.tvShows);
     }
 
     @Override
@@ -137,5 +141,12 @@ public class TVFragment extends Fragment implements TvView, TvClickListener, OnC
     @Override
     public void onClickLanguageSetting(String language) {
         presenter.getTvShows(BuildConfig.API_KEY, language);
+    }
+
+    @Override
+    public void onQueryChange(String query) {
+        if (SessionManager.getString(getActivity(), Constant.LANGUAGE).equals(Constant.EN))
+            presenter.searchTvShows(BuildConfig.API_KEY, Constant.EN, query);
+        else presenter.searchTvShows(BuildConfig.API_KEY, Constant.ID, query);
     }
 }

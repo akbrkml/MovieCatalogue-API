@@ -11,6 +11,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.example.moviecatalogueapi.GlideApp;
 import com.example.moviecatalogueapi.model.Movie;
 import com.example.moviecatalogueapi.ui.movie.view.MovieClickListener;
 import com.example.moviecatalogueapi.R;
@@ -74,7 +75,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder> 
         void bind(final Movie movie) {
             tvTitle.setText(movie.getTitle());
             tvDate.setText(movie.getReleaseDate());
-            Glide.with(context).load(Constant.POSTER_URL + movie.getPosterPath()).into(ivPoster);
+            GlideApp.with(context).load(Constant.POSTER_URL + movie.getPosterPath()).into(ivPoster);
             itemView.setOnClickListener(v -> listener.onItemClick(movie));
         }
     }

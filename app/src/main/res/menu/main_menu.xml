@@ -18,4 +18,11 @@
         android:title="@string/title_favorite"
         android:icon="@drawable/ic_settings"
         app:showAsAction="never"/>
+
+    <item
+        android:id="@+id/action_search"
+        android:icon="@android:drawable/ic_menu_search"
+        android:title="@string/action_search"
+        app:actionViewClass="androidx.appcompat.widget.SearchView"
+        app:showAsAction="ifRoom" />
 </menu>
