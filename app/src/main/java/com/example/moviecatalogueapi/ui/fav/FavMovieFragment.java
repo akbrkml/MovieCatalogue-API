@@ -1,12 +1,18 @@
 package com.example.moviecatalogueapi.ui.fav;
 
 
+import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.loader.app.LoaderManager;
+import androidx.loader.content.CursorLoader;
+import androidx.loader.content.Loader;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -16,7 +22,8 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.example.moviecatalogueapi.R;
-import com.example.moviecatalogueapi.db.AppDatabase;
+import com.example.moviecatalogueapi.db.DatabaseContract;
+import com.example.moviecatalogueapi.db.DatabaseHelper;
 import com.example.moviecatalogueapi.model.Movie;
 import com.example.moviecatalogueapi.ui.movie.DetailMovieActivity;
 import com.example.moviecatalogueapi.ui.movie.adapter.MovieAdapter;
@@ -27,16 +34,15 @@ import java.util.ArrayList;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.disposables.CompositeDisposable;
-import io.reactivex.schedulers.Schedulers;
 
 /**
  * A simple {@link Fragment} subclass.
  */
-public class FavMovieFragment extends Fragment implements MovieClickListener {
+public class FavMovieFragment extends Fragment implements MovieClickListener, LoaderManager.LoaderCallbacks<Cursor> {
 
     private static final String MOVIE_STATE_KEY = "MOVIE_STATE";
+
+    private static final int FAVORITE_MOVIES_LOADER = 0;
 
     @BindView(R.id.rvMovie)
     RecyclerView rvMovie;
@@ -44,8 +50,9 @@ public class FavMovieFragment extends Fragment implements MovieClickListener {
     TextView tvNoData;
 
     private MovieAdapter adapter;
-    private final CompositeDisposable disposable = new CompositeDisposable();
-    private AppDatabase database;
+    private DatabaseHelper database;
+
+    private FavoriteActivity mActivity;
 
     private final ArrayList<Movie> movies = new ArrayList<>();
 
@@ -53,6 +60,13 @@ public class FavMovieFragment extends Fragment implements MovieClickListener {
         // Required empty public constructor
     }
 
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        if (context instanceof Activity){
+            mActivity = (FavoriteActivity) context;
+        }
+    }
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
@@ -67,11 +81,12 @@ public class FavMovieFragment extends Fragment implements MovieClickListener {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        database = AppDatabase.getAppDatabase(getActivity());
+        database = new DatabaseHelper(mActivity);
+
         showRecyclerView();
 
         if (savedInstanceState == null) {
-            showData();
+            LoaderManager.getInstance(mActivity).initLoader(FAVORITE_MOVIES_LOADER, null, this);
         } else {
             ArrayList<Movie> stateList = savedInstanceState.getParcelableArrayList(MOVIE_STATE_KEY);
             if (stateList != null) {
@@ -82,30 +97,10 @@ public class FavMovieFragment extends Fragment implements MovieClickListener {
     }
 
     private void showRecyclerView() {
-        adapter = new MovieAdapter(getActivity(), this);
-        rvMovie.setLayoutManager(new LinearLayoutManager(getActivity()));
+        adapter = new MovieAdapter(mActivity, this);
+        rvMovie.setLayoutManager(new LinearLayoutManager(mActivity));
         rvMovie.setHasFixedSize(true);
         rvMovie.setAdapter(adapter);
-    }
-
-    private void showData() {
-        disposable.add(
-                database.movieDao().getAllMovies()
-                        .subscribeOn(Schedulers.io())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe(movies -> {
-                            if (movies.size() > 0) {
-                                this.movies.addAll(movies);
-                                adapter.setMovies(movies);
-                                rvMovie.setVisibility(View.VISIBLE);
-                                tvNoData.setVisibility(View.INVISIBLE);
-                            } else {
-                                rvMovie.setVisibility(View.INVISIBLE);
-                                tvNoData.setVisibility(View.VISIBLE);
-                            }
-
-                        })
-        );
     }
 
     @Override
@@ -128,8 +123,38 @@ public class FavMovieFragment extends Fragment implements MovieClickListener {
 
     @Override
     public void onItemClick(Movie movie) {
-        Intent intent = new Intent(getActivity(), DetailMovieActivity.class);
+        Intent intent = new Intent(mActivity, DetailMovieActivity.class);
         intent.putExtra(Constant.EXTRA_CATALOG, movie);
         startActivity(intent);
+    }
+
+    @NonNull
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, @Nullable Bundle args) {
+        return new CursorLoader(mActivity,
+                DatabaseContract.MoviesEntry.CONTENT_URI,
+                null,
+                null,
+                null,
+                null);
+    }
+
+    @Override
+    public void onLoadFinished(@NonNull Loader<Cursor> loader, Cursor data) {
+        if (data.getCount() > 0){
+            this.movies.clear();
+            this.movies.addAll(database.getMovieList(data));
+            adapter.setMovies(movies);
+            rvMovie.setVisibility(View.VISIBLE);
+            tvNoData.setVisibility(View.INVISIBLE);
+        } else {
+            rvMovie.setVisibility(View.INVISIBLE);
+            tvNoData.setVisibility(View.VISIBLE);
+        }
+    }
+
+    @Override
+    public void onLoaderReset(@NonNull Loader<Cursor> loader) {
+
     }
 }

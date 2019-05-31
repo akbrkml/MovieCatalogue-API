@@ -1,5 +1,8 @@
 <resources>
-    <string name="app_name">MovieCatalogue(API)</string>
+    <string name="app_name">Movista</string>
+
+    <string name="message_daily_alarm">Movista missing you!</string>
+    <string name="message_daily_upcoming">has been release today!</string>
 
     <string name="title_movies">Movies</string>
     <string name="title_tv">TV Shows</string>
@@ -16,4 +19,24 @@
     <string name="appwidget_text">MOVIE BANNERS</string>
     <string name="add_widget">Add widget</string>
     <string name="empty_text">NO DATA</string>
+    <string name="content_authority">com.example.moviecatalogueapi</string>
+    <string name="success_inserted">Berhasil disimpan</string>
+    <string name="success_deleted">Berhasil dihapus</string>
+    <string name="title_activity_settings">Settings</string>
+
+    <!-- Preference Titles -->
+    <string name="messages_header">Messages</string>
+    <string name="sync_header">Sync</string>
+
+    <!-- Messages Preferences -->
+    <string name="signature_title">Your signature</string>
+    <string name="reply_title">Default reply action</string>
+
+    <!-- Sync Preferences -->
+    <string name="sync_title">Sync email periodically</string>
+    <string name="attachment_title">Download incoming attachments</string>
+    <string name="attachment_summary_on">Automatically download attachments for incoming emails
+    </string>
+    <string name="attachment_summary_off">Only download attachments when manually requested</string>
+    <string name="settings">Settings</string>
 </resources>

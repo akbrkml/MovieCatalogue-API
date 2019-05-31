@@ -17,6 +17,7 @@ import androidx.fragment.app.Fragment;
 import com.example.moviecatalogueapi.R;
 import com.example.moviecatalogueapi.ui.fav.FavoriteActivity;
 import com.example.moviecatalogueapi.ui.movie.MovieFragment;
+import com.example.moviecatalogueapi.ui.setting.SettingsActivity;
 import com.example.moviecatalogueapi.ui.tv.TVFragment;
 import com.example.moviecatalogueapi.utils.Constant;
 import com.example.moviecatalogueapi.utils.SessionManager;
@@ -42,8 +43,6 @@ public class MainActivity extends AppCompatActivity   {
         setSupportActionBar(toolbar);
 
         if (savedInstanceState == null) {
-            setListener((OnChangeLanguageListener) fragment);
-//            setQueryChangeListener((OnQueryChangeListener) fragment);
             loadFragment(fragment);
         } else {
             fragment = getSupportFragmentManager().getFragment(savedInstanceState, FRAGMENT_KEY);
@@ -69,15 +68,11 @@ public class MainActivity extends AppCompatActivity   {
                 case R.id.navigation_movie:
                     toolbar.setTitle(getString(R.string.title_movies));
                     fragment = new MovieFragment();
-                    setListener((OnChangeLanguageListener) fragment);
-//                    setQueryChangeListener((OnQueryChangeListener) fragment);
                     loadFragment(fragment);
                     break;
                 case R.id.navigation_tv:
                     toolbar.setTitle(getString(R.string.title_tv));
                     fragment = new TVFragment();
-                    setListener((OnChangeLanguageListener) fragment);
-//                    setQueryChangeListener((OnQueryChangeListener) fragment);
                     loadFragment(fragment);
                     break;
             }
@@ -141,13 +136,15 @@ public class MainActivity extends AppCompatActivity   {
         } else if (item.getItemId() == R.id.action_change_id){
             SessionManager.putString(this, Constant.LANGUAGE, Constant.ID);
             listener.onClickLanguageSetting(Constant.ID);
+        } else if (item.getItemId() == R.id.action_setting){
+            startActivity(new Intent(this, SettingsActivity.class));
         } else {
             startActivity(new Intent(this, FavoriteActivity.class));
         }
         return super.onOptionsItemSelected(item);
     }
 
-    private void setListener(OnChangeLanguageListener listener) {
+    public void setOnChangeLanguageListener(OnChangeLanguageListener listener) {
         this.listener = listener;
     }
 

@@ -1,6 +1,8 @@
 package com.example.moviecatalogueapi.ui.tv;
 
 
+import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -48,11 +50,19 @@ public class TVFragment extends Fragment implements TvView, TvClickListener, OnC
     private TvAdapter adapter;
     private TvPresenter presenter;
     private final ArrayList<TvShow> tvShows = new ArrayList<>();
+    private MainActivity mActivity;
 
     public TVFragment() {
         // Required empty public constructor
     }
 
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        if (context instanceof Activity){
+            mActivity = (MainActivity) context;
+        }
+    }
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
@@ -66,9 +76,11 @@ public class TVFragment extends Fragment implements TvView, TvClickListener, OnC
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        mActivity.setQueryChangeListener(this);
+        mActivity.setOnChangeLanguageListener(this);
+
         presenter = new TvPresenter(this);
         showRecyclerView();
-        ((MainActivity) getActivity()).setQueryChangeListener(this);
 
         if (savedInstanceState == null) {
             getTvShows();

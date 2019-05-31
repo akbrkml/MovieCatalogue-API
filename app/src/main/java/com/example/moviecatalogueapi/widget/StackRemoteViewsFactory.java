@@ -2,36 +2,27 @@ package com.example.moviecatalogueapi.widget;
 
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.os.Binder;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.RemoteViews;
 import android.widget.RemoteViewsService;
 
-import com.bumptech.glide.Glide;
 import com.example.moviecatalogueapi.GlideApp;
 import com.example.moviecatalogueapi.R;
-import com.example.moviecatalogueapi.db.AppDatabase;
+import com.example.moviecatalogueapi.db.DatabaseContract;
 import com.example.moviecatalogueapi.model.Movie;
 import com.example.moviecatalogueapi.utils.Constant;
 
-import java.util.ArrayList;
-import java.util.List;
+class StackRemoteViewsFactory implements RemoteViewsService.RemoteViewsFactory {
 
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.disposables.CompositeDisposable;
-import io.reactivex.schedulers.Schedulers;
-
-public class StackRemoteViewsFactory implements RemoteViewsService.RemoteViewsFactory {
-
-    private List<Movie> movies = new ArrayList<>();
     private final Context mContext;
-    private final CompositeDisposable disposable = new CompositeDisposable();
-    private AppDatabase database;
+    private Cursor cursor;
 
     StackRemoteViewsFactory(Context mContext) {
         this.mContext = mContext;
-        this.database = AppDatabase.getAppDatabase(mContext);
     }
 
     @Override
@@ -41,39 +32,43 @@ public class StackRemoteViewsFactory implements RemoteViewsService.RemoteViewsFa
 
     @Override
     public void onDataSetChanged() {
-        disposable.add(
-                database.movieDao().getAllMovies()
-                        .subscribeOn(Schedulers.computation())
-                        .subscribe(movies -> {
-                            if (movies.size() > 0) {
-                                this.movies = movies;
-                                for (Movie item: this.movies) {
-                                    Log.e("onDataSetChanged", item.getPosterPath());
-                                }
-                            }
-                        })
-        );
+        if (cursor != null){
+            cursor.close();
+        }
+
+        final long identityToken = Binder.clearCallingIdentity();
+
+        cursor = mContext.getContentResolver().query(
+                DatabaseContract.MoviesEntry.CONTENT_URI,
+                null, null, null, null);
+
+        // querying ke database
+        cursor = mContext.getContentResolver().query(DatabaseContract.MoviesEntry.CONTENT_URI, null, null, null, null);
+
+        Binder.restoreCallingIdentity(identityToken);
     }
 
     @Override
     public void onDestroy() {
-        disposable.clear();
+        if (cursor == null) return;
+        cursor.close();
     }
 
     @Override
     public int getCount() {
-        return movies.size();
+        return cursor.getCount();
     }
 
     @Override
     public RemoteViews getViewAt(int position) {
+        Movie movie = getMovieItem(position);
         RemoteViews rv = new RemoteViews(mContext.getPackageName(), R.layout.widget_item);
 
         Bitmap bitmap = null;
         try {
             bitmap = GlideApp.with(mContext)
                     .asBitmap()
-                    .load(Constant.POSTER_URL + movies.get(position).getPosterPath())
+                    .load(Constant.POSTER_URL + movie.getPosterPath())
                     .submit(250, 110)
                     .get();
         } catch (Exception e) {
@@ -102,11 +97,21 @@ public class StackRemoteViewsFactory implements RemoteViewsService.RemoteViewsFa
 
     @Override
     public long getItemId(int position) {
-        return 0;
+        return cursor.moveToPosition(position) ? cursor.getLong(0) : position;
     }
 
     @Override
     public boolean hasStableIds() {
         return false;
+    }
+
+    private Movie getMovieItem(int position) {
+        if (!cursor.moveToPosition(position)) throw new IllegalStateException("Error exception!");
+        Movie movie = new Movie();
+        movie.setId(cursor.getInt(cursor.getColumnIndexOrThrow(
+                DatabaseContract.MoviesEntry.ID)));
+        movie.setTitle(cursor.getString(cursor.getColumnIndexOrThrow(DatabaseContract.MoviesEntry.MOVIE_TITLE)));
+        movie.setPosterPath(cursor.getString(cursor.getColumnIndexOrThrow(DatabaseContract.MoviesEntry.MOVIE_POSTER_PATH)));
+        return movie;
     }
 }

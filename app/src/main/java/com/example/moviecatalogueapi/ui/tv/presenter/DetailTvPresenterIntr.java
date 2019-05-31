@@ -6,5 +6,4 @@ interface DetailTvPresenterIntr {
     void insertTv(TvShow tv);
     void deleteTv(Integer tvId);
     void getTv(Integer tvId);
-    void clear();
 }

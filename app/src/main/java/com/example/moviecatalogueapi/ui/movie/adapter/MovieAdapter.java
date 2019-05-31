@@ -10,7 +10,6 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.bumptech.glide.Glide;
 import com.example.moviecatalogueapi.GlideApp;
 import com.example.moviecatalogueapi.model.Movie;
 import com.example.moviecatalogueapi.ui.movie.view.MovieClickListener;

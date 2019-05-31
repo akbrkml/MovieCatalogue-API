@@ -1,89 +1,47 @@
 package com.example.moviecatalogueapi.ui.movie.presenter;
 
+import android.content.ContentValues;
 import android.content.Context;
-import android.util.Log;
 
-import com.example.moviecatalogueapi.db.AppDatabase;
+import com.example.moviecatalogueapi.R;
+import com.example.moviecatalogueapi.db.DatabaseContract;
+import com.example.moviecatalogueapi.db.DatabaseHelper;
 import com.example.moviecatalogueapi.model.Movie;
 import com.example.moviecatalogueapi.ui.movie.view.DetailMovieView;
 
-import io.reactivex.Completable;
-import io.reactivex.CompletableObserver;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.disposables.CompositeDisposable;
-import io.reactivex.disposables.Disposable;
-import io.reactivex.schedulers.Schedulers;
+import java.util.List;
 
 public class DetailMoviePresenter implements DetailMoviePresenterIntr {
 
     private final DetailMovieView view;
-    private final AppDatabase database;
-
-    private final CompositeDisposable disposable = new CompositeDisposable();
+    private final DatabaseHelper database;
+    private final Context context;
 
     public DetailMoviePresenter(DetailMovieView view, Context context) {
         this.view = view;
-        this.database = AppDatabase.getAppDatabase(context);
+        this.context = context;
+        this.database = new DatabaseHelper(context);
     }
-
 
     @Override
     public void insertMovie(Movie movie) {
-        Completable.fromAction(() ->
-                database.movieDao().insertMovie(movie))
-                .subscribeOn(Schedulers.computation())
-                .subscribe(new CompletableObserver() {
-                    @Override
-                    public void onSubscribe(Disposable d) {
-
-                    }
-
-                    @Override
-                    public void onComplete() {
-                        view.onMessage("Berhasil disimpan");
-                    }
-
-                    @Override
-                    public void onError(Throwable e) {
-                        Log.e("onError", e.getLocalizedMessage());
-                    }
-                });
+        ContentValues values = DatabaseHelper.getMovieContentValues(movie);
+        context.getContentResolver().insert(DatabaseContract.MoviesEntry.CONTENT_URI, values);
+        view.onMessage(context.getString(R.string.success_inserted));
     }
 
     @Override
     public void deleteMovie(Integer movieId) {
-        Completable.fromAction(() ->
-                database.movieDao().deleteMovie(movieId))
-                .subscribeOn(Schedulers.computation())
-                .subscribe(new CompletableObserver() {
-                    @Override
-                    public void onSubscribe(Disposable d) {
-
-                    }
-
-                    @Override
-                    public void onComplete() {
-                        view.onMessage("Berhasil dihapus");
-                    }
-
-                    @Override
-                    public void onError(Throwable e) {
-                        Log.e("onError", e.getLocalizedMessage());
-                    }
-                });
+        context.getContentResolver().delete(DatabaseContract.MoviesEntry.CONTENT_URI.buildUpon()
+                .appendPath(String.valueOf(movieId)).build(), null, null);
+        view.onMessage(context.getString(R.string.success_deleted));
     }
 
     @Override
     public void getMovie(Integer movieId) {
-        disposable.add(database.movieDao().getMovie(movieId).subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(movie -> {
-                    if (movie != null) view.onGetDataMovieStatus(true);
-                }));
+        List<Movie> movies;
+        movies = database.getMovieById(String.valueOf(movieId));
+        if (movies.size() > 0) view.onGetDataMovieStatus(true);
     }
 
-    @Override
-    public void clear() {
-        disposable.clear();
-    }
 }

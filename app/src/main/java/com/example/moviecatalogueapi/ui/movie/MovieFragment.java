@@ -1,6 +1,8 @@
 package com.example.moviecatalogueapi.ui.movie;
 
 
+import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -49,9 +51,18 @@ public class MovieFragment extends Fragment implements MovieView, MovieClickList
     private MovieAdapter adapter;
     private MoviePresenter presenter;
     private final ArrayList<Movie> movies = new ArrayList<>();
+    private MainActivity mActivity;
 
     public MovieFragment() {
         // Required empty public constructor
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        if (context instanceof Activity){
+            mActivity = (MainActivity) context;
+        }
     }
 
 
@@ -67,9 +78,11 @@ public class MovieFragment extends Fragment implements MovieView, MovieClickList
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        mActivity.setQueryChangeListener(this);
+        mActivity.setOnChangeLanguageListener(this);
+
         presenter = new MoviePresenter(this);
         showRecyclerView();
-        ((MainActivity) getActivity()).setQueryChangeListener(this);
 
         if (savedInstanceState == null) {
             getMovies();

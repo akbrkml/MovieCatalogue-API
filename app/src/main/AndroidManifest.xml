@@ -11,6 +11,10 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+        <activity
+            android:name=".ui.setting.SettingsActivity"
+            android:label="@string/title_activity_settings"/>
+
         <receiver android:name=".widget.MovieTvWidget">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
@@ -22,7 +26,7 @@
         </receiver>
 
         <service
-            android:name="com.example.moviecatalogueapi.widget.StackWidgetService"
+            android:name=".widget.StackWidgetService"
             android:permission="android.permission.BIND_REMOTEVIEWS" />
 
         <activity android:name=".ui.fav.FavoriteActivity" />
@@ -37,6 +41,12 @@
             </intent-filter>
         </activity>
         <activity android:name=".ui.movie.DetailMovieActivity" />
+
+        <provider
+            android:name=".db.DatabaseProvider"
+            android:authorities="@string/content_authority"
+            android:exported="false"
+            android:syncable="true" />
     </application>
 
 </manifest>

@@ -6,5 +6,4 @@ interface DetailMoviePresenterIntr {
     void insertMovie(Movie movie);
     void deleteMovie(Integer movieId);
     void getMovie(Integer movieId);
-    void clear();
 }

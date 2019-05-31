@@ -10,7 +10,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.bumptech.glide.Glide;
 import com.example.moviecatalogueapi.GlideApp;
 import com.example.moviecatalogueapi.R;
 import com.example.moviecatalogueapi.model.TvShow;
@@ -39,6 +38,8 @@ public class DetailTvActivity extends AppCompatActivity implements DetailTvView 
     private TvShow tv;
     private boolean isFavorite;
     private Menu menuItem;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
