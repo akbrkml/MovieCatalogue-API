@@ -7,7 +7,9 @@ public class Constant {
     public static final String TV = "tv";
     public static final String EN = "en";
     public static final String ID = "id";
-    public static final String EXTRA_CATALOG = "extra_catalog";
     public static final String EXTRA_FROM = "from";
-    public static final String LANGUAGE = "language";
+    public static final String FRAGMENT_KEY = "fragment_state";
+    public static final int STATE_LOADING = 0;
+    public static final int STATE_SUCCESS = 1;
+    public static final int STATE_FAILED = -1;
 }

@@ -7,50 +7,45 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.fragment.app.FragmentActivity;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProviders;
+import androidx.paging.PagedList;
+import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.moviecatalogueapi.BuildConfig;
-import com.example.moviecatalogueapi.model.TvShow;
-import com.example.moviecatalogueapi.ui.DetailActivity;
 import com.example.moviecatalogueapi.R;
-import com.example.moviecatalogueapi.ui.OnChangeLanguageListener;
-import com.example.moviecatalogueapi.ui.tv.adapter.TvAdapter;
-import com.example.moviecatalogueapi.ui.tv.presenter.TvPresenter;
-import com.example.moviecatalogueapi.ui.tv.view.TvClickListener;
-import com.example.moviecatalogueapi.ui.tv.view.TvView;
+import com.example.moviecatalogueapi.data.source.local.entity.TvShowEntity;
+import com.example.moviecatalogueapi.ui.adapter.TVPagedAdapter;
+import com.example.moviecatalogueapi.ui.callback.CallbackClickListener;
+import com.example.moviecatalogueapi.ui.detail.DetailActivity;
+import com.example.moviecatalogueapi.utils.CommonUtils;
 import com.example.moviecatalogueapi.utils.Constant;
-import com.example.moviecatalogueapi.utils.SessionManager;
+import com.example.moviecatalogueapi.viewmodel.TvShowViewModel;
+import com.example.moviecatalogueapi.viewmodel.ViewModelFactory;
+import com.example.moviecatalogueapi.vo.Resource;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
-/**
- * A simple {@link Fragment} subclass.
- */
-public class TVFragment extends Fragment implements TvView, TvClickListener, OnChangeLanguageListener {
-
-    private static final String TV_STATE_KEY = "TV_STATE";
+public class TVFragment extends Fragment implements CallbackClickListener {
 
     @BindView(R.id.rvTv)
     RecyclerView rvTv;
     @BindView(R.id.progressBar)
     ProgressBar progressBar;
 
-    private TvAdapter adapter;
-    private TvPresenter presenter;
-    private final ArrayList<TvShow> tvShows = new ArrayList<>();
+    private TVPagedAdapter adapter;
+    private TvShowViewModel viewModel;
 
-    public TVFragment() {
-        // Required empty public constructor
-    }
+    public TVFragment() {}
 
 
     @Override
@@ -65,79 +60,69 @@ public class TVFragment extends Fragment implements TvView, TvClickListener, OnC
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        presenter = new TvPresenter(this);
-        showRecyclerView();
-
-        if (savedInstanceState == null) {
-            getTvShows();
-        } else {
-            ArrayList<TvShow> stateList = savedInstanceState.getParcelableArrayList(TV_STATE_KEY);
-            if (stateList != null) {
-                tvShows.addAll(stateList);
-                adapter.setTvShows(tvShows);
-            }
-        }
+        setupRecyclerView();
     }
 
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setRetainInstance(true);
-    }
-
-    private void showRecyclerView() {
-        adapter = new TvAdapter(getActivity(), this);
-        rvTv.setLayoutManager(new LinearLayoutManager(getActivity()));
+    private void setupRecyclerView() {
+        adapter = new TVPagedAdapter(getActivity(), this);
+        if (getActivity() != null)
+            rvTv.setLayoutManager(new GridLayoutManager(getActivity(), CommonUtils.numberOfColumns(getActivity())));
         rvTv.setHasFixedSize(true);
         rvTv.setAdapter(adapter);
-    }
-
-    private void getTvShows() {
-        if (SessionManager.getString(getActivity(), Constant.LANGUAGE).equals(Constant.EN))
-            presenter.getTvShows(BuildConfig.API_KEY, Constant.EN);
-        else presenter.getTvShows(BuildConfig.API_KEY, Constant.ID);
-    }
-
-    @Override
-    public void onSaveInstanceState(@NonNull Bundle state) {
-        // Save list state
-        state.putParcelableArrayList(TV_STATE_KEY, tvShows);
-        super.onSaveInstanceState(state);
     }
 
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+        if (getActivity() != null) {
+            viewModel = obtainViewModel(getActivity());
+            viewModel.loadTvShows().observe(this, tvShowObserver);
+        }
+    }
+
+    private Observer<Resource<PagedList<TvShowEntity>>> tvShowObserver = new Observer<Resource<PagedList<TvShowEntity>>>() {
+        @Override
+        public void onChanged(Resource<PagedList<TvShowEntity>> tvShows) {
+            if (tvShows != null) {
+                switch (tvShows.status) {
+                    case LOADING:
+                        CommonUtils.setLoading(progressBar,true);
+                        break;
+                    case SUCCESS:
+                        CommonUtils.setLoading(progressBar,false);
+                        loadTvShowsData(tvShows.data);
+                        break;
+                    case ERROR:
+                        CommonUtils.setLoading(progressBar,false);
+                        Toast.makeText(getActivity(), "Terjadi kesalahan", Toast.LENGTH_SHORT).show();
+                        break;
+                }
+            }
+        }
+    };
+
+    @NonNull
+    private static TvShowViewModel obtainViewModel(FragmentActivity activity) {
+        // Use a Factory to inject dependencies into the ViewModel
+        ViewModelFactory factory = ViewModelFactory.getInstance(activity.getApplication());
+        return ViewModelProviders.of(activity, factory).get(TvShowViewModel.class);
+    }
+
+    private void loadTvShowsData(List<TvShowEntity> data) {
+        adapter.setTvShows(data);
     }
 
     @Override
-    public void showTv(List<TvShow> tvShows) {
-        this.tvShows.addAll(tvShows);
-        adapter.setTvShows(tvShows);
-    }
-
-    @Override
-    public void showLoading() {
-        progressBar.setEnabled(true);
-        progressBar.setVisibility(View.VISIBLE);
-    }
-
-    @Override
-    public void hideLoading() {
-        progressBar.setEnabled(false);
-        progressBar.setVisibility(View.INVISIBLE);
-    }
-
-    @Override
-    public void onItemClick(TvShow tvShow) {
+    public void onItemClick(int id) {
         Intent intent = new Intent(getActivity(), DetailActivity.class);
-        intent.putExtra(Constant.EXTRA_CATALOG, tvShow);
+        intent.putExtra(Constant.ID, id);
         intent.putExtra(Constant.EXTRA_FROM, Constant.TV);
         startActivity(intent);
     }
 
     @Override
-    public void onClickLanguageSetting(String language) {
-        presenter.getTvShows(BuildConfig.API_KEY, language);
+    public void onDestroyView() {
+        viewModel.onCleared();
+        super.onDestroyView();
     }
 }
